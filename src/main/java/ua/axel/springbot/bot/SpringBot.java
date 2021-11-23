@@ -1,11 +1,18 @@
 package ua.axel.springbot.bot;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 @Component
 public class SpringBot extends TelegramLongPollingBot {
+
+	@Value("${telegram.bot.username}")
+	private String botUsername;
+
+	@Value("${telegram.bot.token}")
+	private String botToken;
 
 	@Override
 	public void onUpdateReceived(Update update) {
@@ -14,12 +21,12 @@ public class SpringBot extends TelegramLongPollingBot {
 
 	@Override
 	public String getBotUsername() {
-		return null;
+		return botUsername;
 	}
 
 	@Override
 	public String getBotToken() {
-		return null;
+		return botToken;
 	}
 
 }

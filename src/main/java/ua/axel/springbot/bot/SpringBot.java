@@ -1,14 +1,17 @@
 package ua.axel.springbot.bot;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import ua.axel.springbot.service.MessageService;
 
 @Component
 public class SpringBot extends TelegramLongPollingBot {
+
+	private final MessageService messageService;
 
 	@Value("${telegram.bot.username}")
 	private String botUsername;
@@ -16,14 +19,15 @@ public class SpringBot extends TelegramLongPollingBot {
 	@Value("${telegram.bot.token}")
 	private String botToken;
 
+	@Autowired
+	public SpringBot(MessageService messageService) {
+		this.messageService = messageService;
+	}
+
 	@Override
 	public void onUpdateReceived(Update update) {
 		try {
-			SendMessage sendMessage = SendMessage.builder()
-					.chatId(update.getMessage().getChatId().toString())
-					.text("Hello, SpringBot!")
-					.build();
-			execute(sendMessage);
+			execute(messageService.getMethod(update).get());
 		} catch (TelegramApiException e) {
 			e.printStackTrace();
 		}

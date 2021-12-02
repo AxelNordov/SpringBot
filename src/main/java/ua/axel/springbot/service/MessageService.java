@@ -28,9 +28,6 @@ public class MessageService {
 	}
 
 	public Optional<BotApiMethod<Message>> getMethod(Update update) {
-		if (update.getMessage() == null) {
-			return Optional.empty();
-		}
 		return Optional.ofNullable(getNextRandomQuizWithAnswer(update));
 	}
 

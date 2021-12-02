@@ -26,11 +26,13 @@ public class SpringBot extends TelegramLongPollingBot {
 
 	@Override
 	public void onUpdateReceived(Update update) {
-		try {
-			execute(messageService.getMethod(update).get());
-		} catch (TelegramApiException e) {
-			e.printStackTrace();
-		}
+		messageService.getMethod(update).ifPresent(method -> {
+			try {
+				execute(method);
+			} catch (TelegramApiException e) {
+				e.printStackTrace();
+			}
+		});
 	}
 
 	@Override

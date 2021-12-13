@@ -1,16 +1,16 @@
 package ua.axel.springbot.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.hibernate.Hibernate;
 
 import javax.persistence.*;
 import java.util.List;
+import java.util.Objects;
 
-@Data
 @Entity
 @Builder
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "quiz")
@@ -45,5 +45,18 @@ public class Quiz {
 
 	@OneToMany(fetch = FetchType.EAGER, mappedBy = "quiz")
 	private List<Answer> answers;
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+		Quiz quiz = (Quiz) o;
+		return id != null && Objects.equals(id, quiz.id);
+	}
+
+	@Override
+	public int hashCode() {
+		return getClass().hashCode();
+	}
 
 }

@@ -1,13 +1,9 @@
 package ua.axel.springbot.service;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.polls.SendPoll;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
+import ua.axel.springbot.MyPoll;
 import ua.axel.springbot.entity.Answer;
 import ua.axel.springbot.entity.Quiz;
 import ua.axel.springbot.repository.QuizRepository;
@@ -19,27 +15,15 @@ import java.util.stream.Collectors;
 @Service
 public class MessageService {
 
-	private static final Logger logger = LoggerFactory.getLogger(MessageService.class);
-	private final QuizRepository quizRepository;
+	private static final String QUIZ_TYPE = "quiz";
 
 	@Autowired
-	public MessageService(QuizRepository quizRepository) {
-		this.quizRepository = quizRepository;
-	}
+	private QuizRepository quizRepository;
 
-	public Optional<BotApiMethod<Message>> getMethod(Update update) {
-		if (update.getMessage() == null) {
-			return Optional.empty();
-		}
-		return Optional.ofNullable(getNextRandomQuizWithAnswer(update));
-	}
-
-	public SendPoll getNextRandomQuizWithAnswer(Update update) {
+	public Optional<MyPoll> getSendPool(String chatId) {
 		var quiz = quizRepository.findRandomQuizWithRightAnswer();
-		var sendPoll = getSendPollFromQuiz(getChatId(update), quiz);
-		logger.info("{} ask a poll from {}: {}",
-				update.getMessage().getFrom().getUserName(), quiz.getTopic(), quiz.getQuestion());
-		return sendPoll;
+		var sendPoll = getSendPollFromQuiz(chatId, quiz);
+		return Optional.of(new MyPoll(sendPoll, quiz));
 	}
 
 	private SendPoll getSendPollFromQuiz(String chatId, Quiz quiz) {
@@ -47,29 +31,18 @@ public class MessageService {
 				.sorted(Comparator.comparingInt(Answer::getOrderNumber))
 				.map(Answer::getText)
 				.collect(Collectors.toList());
-		String question;
-		String explanation = quiz.getLink1();
-		String type = null;
-		Integer correctOptionId = null;
-		if (quiz.getRightAnswer() != null && quiz.getRightAnswer() >= 0) {
-			question = quiz.getQuestion();
-			type = "quiz";
-			correctOptionId = quiz.getRightAnswer() - 1;
-		} else {
-			question = quiz.getQuestion() + " (no answer)";
-		}
 		return SendPoll.builder()
 				.chatId(chatId)
 				.options(options)
-				.explanation(explanation)
-				.question(question)
-				.type(type)
-				.correctOptionId(correctOptionId)
+				.explanation(quiz.getLink1())
+				.question(quiz.getQuestion())
+				.type(QUIZ_TYPE)
+				.correctOptionId(getCorrectOptionId(quiz.getRightAnswer()))
 				.build();
 	}
 
-	private String getChatId(Update update) {
-		return update.getMessage().getChatId().toString();
+	private int getCorrectOptionId(Byte rightAnswer) {
+		return rightAnswer - 1;
 	}
 
 }

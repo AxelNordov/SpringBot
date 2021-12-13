@@ -8,12 +8,13 @@ import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import ua.axel.springbot.service.MessageService;
+import ua.axel.springbot.service.UpdateService;
 
 @Component
 public class SpringBot extends TelegramLongPollingBot {
 
-	private final MessageService messageService;
+	@Autowired
+	private UpdateService updateService;
 
 	@Value("${telegram.bot.username}")
 	private String botUsername;
@@ -21,24 +22,18 @@ public class SpringBot extends TelegramLongPollingBot {
 	@Value("${telegram.bot.token}")
 	private String botToken;
 
-	@Autowired
-	public SpringBot(MessageService messageService) {
-		this.messageService = messageService;
-	}
-
 	@Override
 	public void onUpdateReceived(Update update) {
-		messageService.getMethod(update).ifPresent(this::executeMethod);
+		updateService.getMethods(update).forEach(this::executeMethod);
 	}
 
-	private Message executeMethod(BotApiMethod<Message> method) {
-		Message execute = new Message();
+	private void executeMethod(BotApiMethod<Message> method) {
 		try {
-			execute = execute(method);
+			execute(method);
 		} catch (TelegramApiException e) {
 			e.printStackTrace();
+			throw new RuntimeException("TODO", e);
 		}
-		return execute;
 	}
 
 	@Override

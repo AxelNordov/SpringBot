@@ -3,6 +3,9 @@ package ua.axel.springbot.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.polls.SendPoll;
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.Update;
 import ua.axel.springbot.MyPoll;
 import ua.axel.springbot.entity.Answer;
 import ua.axel.springbot.entity.Quiz;
@@ -45,4 +48,8 @@ public class MessageService {
 		return rightAnswer - 1;
 	}
 
+	Optional<Message> getMessage(Update update) {
+		return Optional.ofNullable(update.getMessage())
+				.or(() -> Optional.ofNullable(update.getCallbackQuery()).map(CallbackQuery::getMessage));
+	}
 }
